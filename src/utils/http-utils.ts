@@ -1,7 +1,6 @@
-import { ServerResponse } from 'http';
+import { IncomingMessage, ServerResponse } from 'http';
 import { validate as validateUUID } from 'uuid';
 
-// HTTP status codes
 export enum StatusCode {
   OK = 200,
   CREATED = 201,
@@ -22,7 +21,11 @@ export const sendSuccessResponse = (res: ServerResponse, statusCode: StatusCode,
   sendJsonResponse(res, statusCode, data);
 };
 
-// Send error response
+export const sendNoContentResponse = (res: ServerResponse): void => {
+  res.writeHead(StatusCode.NO_CONTENT);
+  res.end();
+};
+
 export const sendErrorResponse = (res: ServerResponse, statusCode: StatusCode, message: string): void => {
   sendJsonResponse(res, statusCode, { error: message });
 };
@@ -32,7 +35,6 @@ export const isValidUUID = (id: string): boolean => {
   return validateUUID(id);
 };
 
-// Parse JSON safely
 export const parseJson = (data: string): { success: boolean; data?: any; error?: string } => {
   try {
     const parsedData = JSON.parse(data);
@@ -42,8 +44,7 @@ export const parseJson = (data: string): { success: boolean; data?: any; error?:
   }
 };
 
-// Read the request body
-export const readRequestBody = (req: any): Promise<string> => {
+export const readRequestBody = (req: IncomingMessage): Promise<string> => {
   return new Promise((resolve, reject) => {
     let body = '';
     req.on('data', (chunk: Buffer) => {
