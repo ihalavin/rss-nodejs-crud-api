@@ -1,8 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
 import { User, UserDTO } from '../models/user.model';
+import { Database } from './database.interface';
 
-// In-memory database
-class InMemoryDB {
+class InMemoryDB implements Database {
   private users: User[] = [];
 
   // Get all users

@@ -1,9 +1,14 @@
 import { v4 as uuidv4 } from 'uuid';
 import { User, UserDTO } from '../models/user.model';
 import cluster from 'cluster';
+import { Database } from './database.interface';
 
-// Shared an in-memory database for cluster mode
-class SharedDB {
+interface DbMessage {
+  type: 'DB_UPDATE';
+  data: User[];
+}
+
+class SharedDB implements Database {
   private users: User[] = [];
   private readonly isPrimary: boolean;
 
@@ -13,7 +18,7 @@ class SharedDB {
     // Set up message handlers for worker processes
     if (!this.isPrimary && cluster.worker) {
       // Handle messages from primary process
-      process.on('message', (message: any) => {
+      process.on('message', (message: DbMessage) => {
         if (message.type === 'DB_UPDATE') {
           this.users = message.data;
         }
@@ -23,10 +28,15 @@ class SharedDB {
 
   // Synchronize database state with all workers
   private syncDatabase(): void {
+    const message: DbMessage = {
+      type: 'DB_UPDATE',
+      data: this.users
+    };
+
     if (this.isPrimary && cluster.workers) {
       // Send an updated database to all workers
       Object.values(cluster.workers).forEach(worker => {
-        worker?.send({ type: 'DB_UPDATE', data: this.users });
+        worker?.send(message);
       });
     } else if (!this.isPrimary && cluster.worker) {
       // Send update to a primary process
