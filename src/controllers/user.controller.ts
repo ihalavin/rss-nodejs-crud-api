@@ -5,6 +5,7 @@ import {
   StatusCode,
   sendSuccessResponse,
   sendErrorResponse,
+  sendNoContentResponse,
   isValidUUID,
   readRequestBody,
   parseJson
@@ -130,8 +131,7 @@ export const deleteUser = async (req: IncomingMessage, res: ServerResponse, user
     }
 
     // Send a success response with no content
-    res.writeHead(StatusCode.NO_CONTENT);
-    res.end();
+    sendNoContentResponse(res);
   } catch (error) {
     console.error(`Error deleting user with ID ${userId}:`, error);
     sendErrorResponse(res, StatusCode.INTERNAL_SERVER_ERROR, 'Internal server error');
